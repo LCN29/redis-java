@@ -1,4 +1,4 @@
-package com.can.sds;
+package com.can.data.structure.sds;
 
 /**
  * <pre>

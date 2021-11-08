@@ -1,8 +1,9 @@
-package com.can.sds.enums;
+package com.can.data.structure.sds.enums;
 
 /**
  * <pre>
- * sds 的类型
+ * sds 的类型 (sds.h)
+ *
  * </pre>
  *
  * @author
@@ -10,8 +11,9 @@ package com.can.sds.enums;
  */
 public enum SdsTypeEnum {
 
-	/** sds 类型定义  */
-	
+	/**
+	 * sds 类型定义
+	 */
 	SDS_TYPE_5(0),
 	SDS_TYPE_8(1),
 	SDS_TYPE_16(2),
@@ -19,7 +21,7 @@ public enum SdsTypeEnum {
 	SDS_TYPE_64(4),
 	;
 
-	private int type;
+	private final int type;
 
 	SdsTypeEnum(int type) {
 		this.type = type;

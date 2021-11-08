@@ -1,4 +1,4 @@
-package com.can.sds;
+package com.can.data.structure.sds;
 
 /**
  * <pre>
@@ -8,17 +8,17 @@ package com.can.sds;
  * @author
  * @date 2021-11-08  14:44
  */
-public class SdsHdr16 {
+public class SdsHdr64 {
 
 	/**
 	 * 已经使用的长度
 	 */
-	private short len;
+	private long len;
 
 	/**
 	 * 申请的字符长度，不包含 Header 结构和最后的空终止字符
 	 */
-	private short alloc;
+	private long alloc;
 
 	/**
 	 * 字符串的类型,
@@ -30,6 +30,5 @@ public class SdsHdr16 {
 	 * 数据存储空间
 	 */
 	private char[] buf;
-
 
 }
