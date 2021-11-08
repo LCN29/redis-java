@@ -8,7 +8,7 @@ package com.can.data.structure.sds;
  * @author
  * @date 2021-11-08  14:39
  */
-public class SdsHdr8 {
+public class SdsHdr8 extends Sds{
 
 	/**
 	 * 已经使用的长度
@@ -30,4 +30,15 @@ public class SdsHdr8 {
 	 * 数据存储空间
 	 */
 	private char[] buf;
+
+
+	@Override
+	protected int sdsLen() {
+		return len;
+	}
+
+	@Override
+	protected char pos(int index) {
+		return buf[index];
+	}
 }
