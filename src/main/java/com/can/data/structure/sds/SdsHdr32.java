@@ -8,7 +8,7 @@ package com.can.data.structure.sds;
  * @author
  * @date 2021-11-08  14:44
  */
-public class SdsHdr32 {
+public class SdsHdr32 extends Sds {
 
 	/**
 	 * 已经使用的长度
@@ -20,15 +20,8 @@ public class SdsHdr32 {
 	 */
 	private int alloc;
 
-	/**
-	 * 字符串的类型,
-	 * 只使用低 3 位存储类型, 高 5 位不使用
-	 */
-	private byte flags;
-
-	/**
-	 * 数据存储空间
-	 */
-	private char[] buf;
-
+	@Override
+	protected int sdsLen() {
+		return len;
+	}
 }

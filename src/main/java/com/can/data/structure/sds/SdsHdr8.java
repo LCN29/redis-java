@@ -1,5 +1,7 @@
 package com.can.data.structure.sds;
 
+import com.can.data.structure.sds.enums.SdsTypeEnum;
+
 /**
  * <pre>
  *
@@ -8,7 +10,7 @@ package com.can.data.structure.sds;
  * @author
  * @date 2021-11-08  14:39
  */
-public class SdsHdr8 extends Sds{
+public class SdsHdr8 extends Sds {
 
 	/**
 	 * 已经使用的长度
@@ -20,25 +22,19 @@ public class SdsHdr8 extends Sds{
 	 */
 	private byte alloc;
 
-	/**
-	 * 字符串的类型,
-	 * 只使用低 3 位存储类型, 高 5 位不使用
-	 */
-	private byte flags;
+	public SdsHdr8(char[] content) {
 
-	/**
-	 * 数据存储空间
-	 */
-	private char[] buf;
-
+		this.flags = SdsTypeEnum.SDS_TYPE_8.getType();
+		this.len = (byte) content.length;
+		// TODO 提前分配
+		this.alloc = this.len;
+		this.buf = new char[this.alloc];
+		System.arraycopy(content, 0, buf, 0, content.length);
+	}
 
 	@Override
 	protected int sdsLen() {
 		return len;
 	}
 
-	@Override
-	protected char pos(int index) {
-		return buf[index];
-	}
 }

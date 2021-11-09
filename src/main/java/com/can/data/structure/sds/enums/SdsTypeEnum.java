@@ -14,20 +14,20 @@ public enum SdsTypeEnum {
 	/**
 	 * sds 类型定义
 	 */
-	SDS_TYPE_5(0),
-	SDS_TYPE_8(1),
-	SDS_TYPE_16(2),
-	SDS_TYPE_32(3),
-	SDS_TYPE_64(4),
+	SDS_TYPE_5((byte) 0),
+	SDS_TYPE_8((byte) 1),
+	SDS_TYPE_16((byte) 2),
+	SDS_TYPE_32((byte) 3),
+	SDS_TYPE_64((byte) 4),
 	;
 
-	private final int type;
+	private final byte type;
 
-	SdsTypeEnum(int type) {
+	SdsTypeEnum(byte type) {
 		this.type = type;
 	}
 
-	public int getType() {
+	public byte getType() {
 		return type;
 	}
 
