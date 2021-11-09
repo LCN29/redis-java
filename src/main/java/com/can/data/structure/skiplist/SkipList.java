@@ -76,7 +76,7 @@ public class SkipList {
 		SkipListNode[] update = new SkipListNode[ZSKIPLIST_MAXLEVEL];
 
 		// 存储从头节点到 update[i] 经过的节点数
-		int[] rank = new int[ZSKIPLIST_MAXLEVEL];
+ 		int[] rank = new int[ZSKIPLIST_MAXLEVEL];
 
 
 		SkipListNode tempNode = this.header;
@@ -125,19 +125,12 @@ public class SkipList {
 			update[i].setSpecifiedLevelSpan(i, update[i].getSpecifiedLevelSpan(i) + 1);
 		}
 
-		if (update[0] == this.header) {
-			System.out.println("0000");
-		}
-
-		// TODO bug
-		SkipListNode skipListNode = update[0] == this.header ? null : update[0];
-
-		tempNode.setBackward(skipListNode);
+		tempNode.setBackward(update[0] == this.header ? null : update[0]);
 
 		if (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(0))) {
 			tempNode.getSpecifiedLevelForwardNode(0).setBackward(tempNode);
 		} else {
-			this.tail = tempNode.getBackward();
+			this.tail = tempNode;
 		}
 
 		this.length++;
@@ -199,6 +192,7 @@ public class SkipList {
 
 		/**
 		 * 下一个节点和当前节点跳过的节点数
+		 * 前缀节点到当前节点跳过的节点数 (自身节点也算一个节点)
 		 */
 		private int span;
 	}
