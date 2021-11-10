@@ -39,56 +39,108 @@ import lombok.Data;
  * @author
  * @date 2021-11-10  15:43
  */
-public class ZipList {
+public class ZipList<BIT> {
+
+    private byte[] zipList;
+
+    /**
+     * 压缩列表头部的大小
+     * zlbytes 4 个字节
+     * zltail 4 个字节
+     * zllen 2 个字节
+     */
+    private final static int ZIPLIST_HEADER_SIZE = 4 + 4 + 2;
+
+    /**
+     * 压缩列表结束的标识 255˚
+     */
+    private final static byte ZIP_END = (byte) 0xFF;
+
+    /**
+     * 8 位二进制最大值
+     */
+    private final static int MAX_8_BIT_VALUE = 0xFF;
+
+    /**
+     * byte 的字节数
+     */
+    private final static int BIT_COUNT_IN_BYTE = 8;
+
+    /**
+     * int 的字节数
+     */
+    private final static int BIT_COUNT_IN_INT = 32;
+
+    /**
+     * int 的位数是 byte 的 4 倍
+     */
+    private final static int COUNT_FROM_INT_BIT_TO_BYTE = BIT_COUNT_IN_INT / BIT_COUNT_IN_BYTE;
+
+    public ZipList() {
+
+        // 头部 + zlend 1 个字节
+        int length = ZIPLIST_HEADER_SIZE + 1;
+
+        zipList = new byte[length];
+
+        updateZlBytes(4);
+        // TODO tail length
+
+        zipList[length - 1] = ZIP_END;
+    }
+
+    private void updateZlBytes(int length) {
+
+        for (int i = COUNT_FROM_INT_BIT_TO_BYTE - 1; i >= 0; i--) {
+            // 右移位数
+            int rightMoveBitCount = COUNT_FROM_INT_BIT_TO_BYTE - 1 - i;
+            zipList[i] = (byte) ((length >> rightMoveBitCount) & MAX_8_BIT_VALUE);
+        }
+    }
 
 
-	public ZipList() {
+    @Data
+    private static class Entry {
 
-	}
+        /**
+         * previous_entry_length 占用了多少个字节 1 或者 5
+         */
+        int prevrawlensize;
 
+        /**
+         * previous_entry_length 的值
+         */
+        int prevrawlen;
 
-	@Data
-	private static class Entry {
+        /**
+         * encoding 占用了多少个字节  1,2,5
+         */
+        int lensize;
 
-		/**
-		 * previous_entry_length 占用了多少个字节 1 或者 5
-		 */
-		int prevrawlensize;
+        /**
+         * 元素数据内容的长度
+         */
+        int len;
 
-		/**
-		 * previous_entry_length 的值
-		 */
-		int prevrawlen;
+        /**
+         * 数据类型
+         */
+        char encoding;
 
-		/**
-		 * encoding 占用了多少个字节  1,2,5
-		 */
-		int lensize;
+        int headerSize;
 
-		/**
-		 * 元素数据内容的长度
-		 */
-		int len;
+        char content;
 
-		/**
-		 * 数据类型
-		 */
-		char encoding;
+        private void zipDecodePrevlen() {
 
-		int headerSize;
+        }
 
-		char content;
+        private void zipDecodeLength() {
 
-		private void zipDecodePrevlen() {
-
-		}
-
-		private void zipDecodeLength() {
-
-			// 192, 1100 0000
-			int a = 0xc0;
+            // 192, 1100 0000
+            int a = 0xc0;
 
 
-		}
-	}
+        }
+    }
 }
