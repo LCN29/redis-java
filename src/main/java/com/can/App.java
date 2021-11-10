@@ -1,9 +1,5 @@
 package com.can;
 
-import com.can.data.structure.sds.Sds;
-import com.can.data.structure.sds.SdsHdr8;
-import com.can.data.structure.skiplist.SkipList;
-
 /**
  * Hello world!
  */
@@ -11,19 +7,16 @@ public class App {
 
 	public static void main(String[] args) {
 
-		SkipList skipList = new SkipList();
+	}
 
-		char[] sdsContent = new char[2];
-		sdsContent[0] = '1';
-		sdsContent[1] = '2';
-		Sds sds = new SdsHdr8(sdsContent);
+	private static char[] createCharArr(char... args) {
 
-		for (int i = 0; i < 10; i += 2) {
-			skipList.insert(i, sds);
+		int length = args.length;
+		char[] arr = new char[length];
+
+		for (int i = 0; i < args.length; i++) {
+			arr[i] = args[i];
 		}
-
-		skipList.insert(7, sds);
-		skipList.insert(9, sds);
-
+		return arr;
 	}
 }

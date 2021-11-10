@@ -3,6 +3,8 @@ package com.can.data.structure.skiplist;
 import com.can.data.structure.sds.Sds;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -76,18 +78,19 @@ public class SkipList {
 		SkipListNode[] update = new SkipListNode[ZSKIPLIST_MAXLEVEL];
 
 		// 存储从头节点到 update[i] 经过的节点数
- 		int[] rank = new int[ZSKIPLIST_MAXLEVEL];
-
+		int[] rank = new int[ZSKIPLIST_MAXLEVEL];
 
 		SkipListNode tempNode = this.header;
 
 		for (int i = this.level - 1; i >= 0; i--) {
 
+			// 这样做的原因是, 下面 tempNode 在从 level 层到 0 层中, 每一层中要插入位置的前置节点
+			// 把这个节点上面一层的 span 继承到这一层, 然后把从这个节点向后追加的符合条件节点的span, 就是这一层的前置节点到头节点的 span
 			rank[i] = i == this.level - 1 ? 0 : rank[i + 1];
 
 			while (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(i))
 					&& (tempNode.getSpecifiedLevelForwardNodeScore(i) < score
-					|| (tempNode.getSpecifiedLevelForwardNodeScore(i) == score && tempNode.getSpecifiedLevelForwardNodeEle(i).sdscmp(ele) <= 0))) {
+					|| (tempNode.getSpecifiedLevelForwardNodeScore(i) == score && tempNode.getSpecifiedLevelForwardNodeEle(i).sdscmp(ele) < 0))) {
 
 				rank[i] += tempNode.getSpecifiedLevelSpan(i);
 				tempNode = tempNode.getSpecifiedLevelForwardNode(i);
@@ -138,6 +141,162 @@ public class SkipList {
 	}
 
 	/**
+	 * 根据得分删除节点 (没法批量删除, 只能删除第一个符合条件的)
+	 *
+	 * @param score 得分
+	 * @return 删除的节点
+	 */
+	public SkipListNode delete(double score) {
+
+		SkipListNode[] update = new SkipListNode[ZSKIPLIST_MAXLEVEL];
+
+		// 找到需要删除节点的前置节点
+		SkipListNode tempNode = this.header;
+		for (int i = this.level - 1; i >= 0; i--) {
+
+			while (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(i))
+					&& (tempNode.getSpecifiedLevelForwardNodeScore(i) == score)) {
+				tempNode = tempNode.getSpecifiedLevelForwardNode(i).getBackward();
+			}
+			update[i] = tempNode;
+		}
+
+		if (Objects.nonNull(tempNode) && tempNode.getScore() == score) {
+			deleteNode(tempNode, update);
+			return tempNode;
+		}
+		return null;
+	}
+
+	/**
+	 * 根据内容删除节点 (没法批量删除, 只能删除第一个符合条件的)
+	 *
+	 * @param ele 内容
+	 * @return 删除的节点
+	 */
+	public SkipListNode delete(Sds ele) {
+
+		SkipListNode[] update = new SkipListNode[ZSKIPLIST_MAXLEVEL];
+
+		// 找到需要删除节点的前置节点
+		SkipListNode tempNode = this.header;
+		for (int i = this.level - 1; i >= 0; i--) {
+			while (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(i))
+					&& (tempNode.getSpecifiedLevelForwardNodeEle(i).sdscmp(ele) == 0)) {
+				tempNode = tempNode.getSpecifiedLevelForwardNode(i).getBackward();
+			}
+			update[i] = tempNode;
+		}
+
+		// 第 0 层的后置节点
+		tempNode = tempNode.getSpecifiedLevelForwardNode(0);
+
+		if (Objects.nonNull(tempNode) && ele.sdscmp(tempNode.getEle()) == 0) {
+			deleteNode(tempNode, update);
+			return tempNode;
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * 根据分数和内容进行节点的删除 (没法批量删除, 只能删除第一个符合条件的)
+	 *
+	 * @param score 得分
+	 * @param ele   内容
+	 * @return 删除的节点
+	 */
+	public SkipListNode delete(double score, Sds ele) {
+
+		SkipListNode[] update = new SkipListNode[ZSKIPLIST_MAXLEVEL];
+
+		// 找到需要删除节点的前置节点
+		SkipListNode tempNode = this.header;
+		for (int i = this.level - 1; i >= 0; i--) {
+
+			while (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(i))
+					&& (tempNode.getSpecifiedLevelForwardNodeScore(i) < score
+					|| (tempNode.getSpecifiedLevelForwardNodeScore(i) == score && tempNode.getSpecifiedLevelForwardNodeEle(i).sdscmp(ele) < 0))) {
+				tempNode = tempNode.getSpecifiedLevelForwardNode(i);
+			}
+			update[i] = tempNode;
+		}
+
+
+		// 第 0 层的后置节点
+		tempNode = tempNode.getSpecifiedLevelForwardNode(0);
+		if (Objects.nonNull(tempNode) && tempNode.getScore() == score && ele.sdscmp(tempNode.getEle()) == 0) {
+			deleteNode(tempNode, update);
+			return tempNode;
+		}
+
+		return null;
+	}
+
+	/**
+	 * 指定范围的获取
+	 *
+	 * @param startScore 开始分数
+	 * @param endScore   结束分数
+	 * @return 内容集合
+	 */
+	public List<Sds> range(double startScore, double endScore) {
+
+		// 找到需要删除节点的前置节点
+		SkipListNode tempNode = this.header;
+		for (int i = this.level - 1; i >= 0; i--) {
+			while (Objects.nonNull(tempNode.getSpecifiedLevelForwardNode(i))
+					&& tempNode.getSpecifiedLevelForwardNodeScore(i) <= endScore) {
+				tempNode = tempNode.getSpecifiedLevelForwardNode(i);
+			}
+		}
+
+		if (tempNode == header) {
+			return new ArrayList<>();
+		}
+
+		List<Sds> result = new ArrayList<>();
+		SkipListNode backwardNode = tempNode.getBackward();
+		while (Objects.nonNull(backwardNode) && backwardNode.getScore() >= startScore) {
+			result.add(tempNode.getBackward().getEle());
+			backwardNode = tempNode.getBackward();
+		}
+		return result;
+	}
+
+	/**
+	 * 从跳表中删除指定的节点
+	 *
+	 * @param node   删除的节点
+	 * @param update 删除节点的每一层的前置节点
+	 */
+	private void deleteNode(SkipListNode node, SkipListNode[] update) {
+
+		for (int i = 0; i < level; i++) {
+			if (update[i].getSpecifiedLevelForwardNode(i) == node) {
+				int newSpan = update[i].getSpecifiedLevelSpan(i) + node.getSpecifiedLevelSpan(i) - 1;
+				update[i].setSpecifiedLevelSpan(i, newSpan);
+				update[i].setSpecifiedLevelForwardNode(i, node.getSpecifiedLevelForwardNode(i));
+			} else {
+				int newSpan = update[i].getSpecifiedLevelSpan(i) - 1;
+				update[i].setSpecifiedLevelSpan(i, newSpan);
+			}
+		}
+
+		if (Objects.isNull(node.getSpecifiedLevelForwardNode(0))) {
+			node.getSpecifiedLevelForwardNode(0).setBackward(node.getBackward());
+		} else {
+			tail = node.getBackward();
+		}
+
+		while (level > 1 && header.getSpecifiedLevelForwardNode(level) == null) {
+			level--;
+		}
+		length--;
+	}
+
+	/**
 	 * 创建节点
 	 *
 	 * @param level 层高
@@ -157,7 +316,6 @@ public class SkipList {
 		}
 		return node;
 	}
-
 
 	/**
 	 * 返回层数
@@ -191,8 +349,12 @@ public class SkipList {
 		private SkipListNode forward;
 
 		/**
-		 * 下一个节点和当前节点跳过的节点数
-		 * 前缀节点到当前节点跳过的节点数 (自身节点也算一个节点)
+		 * 达到下一个节点需要经过的节点数 (null 也算一个, 达到的节点也是一个)
+		 * <p>
+		 * 1 a -> b -> c -> d
+		 * 2 a -> null
+		 * 第一层 a -> b 的 span = 1
+		 * 第二层 a -> null 的 span = 3 (一次性跳过了多个节点了, 以第一层为参照)
 		 */
 		private int span;
 	}
