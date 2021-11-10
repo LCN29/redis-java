@@ -7,6 +7,7 @@ public class App {
 
 	public static void main(String[] args) {
 
+
 	}
 
 	private static char[] createCharArr(char... args) {
@@ -19,4 +20,5 @@ public class App {
 		}
 		return arr;
 	}
+
 }
