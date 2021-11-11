@@ -39,108 +39,230 @@ import lombok.Data;
  * @author
  * @date 2021-11-10  15:43
  */
-public class ZipList<BIT> {
+public class ZipList {
 
-    private byte[] zipList;
+	private final byte[] zipList;
 
-    /**
-     * 压缩列表头部的大小
-     * zlbytes 4 个字节
-     * zltail 4 个字节
-     * zllen 2 个字节
-     */
-    private final static int ZIPLIST_HEADER_SIZE = 4 + 4 + 2;
+	/**
+	 * zlbytes 的存储长度
+	 */
+	private final static int ZL_BYTES_LEN = 4;
 
-    /**
-     * 压缩列表结束的标识 255˚
-     */
-    private final static byte ZIP_END = (byte) 0xFF;
+	/**
+	 * zltail 的存储长度 (entry 都是 byte 的倍数), 所以 zlTail 里面存储的数组的下标
+	 */
+	private final static int ZL_TAIL_LEN = 4;
 
-    /**
-     * 8 位二进制最大值
-     */
-    private final static int MAX_8_BIT_VALUE = 0xFF;
+	/**
+	 * zl len 的存储长度
+	 */
+	private final static int ZL_LEN_LEN = 2;
 
-    /**
-     * byte 的字节数
-     */
-    private final static int BIT_COUNT_IN_BYTE = 8;
+	/**
+	 * 压缩列表头部的大小
+	 * zlbytes 4 个字节
+	 * zltail 4 个字节
+	 * zllen 2 个字节
+	 */
+	private final static int ZIPLIST_HEADER_SIZE = ZL_BYTES_LEN + ZL_TAIL_LEN + ZL_LEN_LEN;
 
-    /**
-     * int 的字节数
-     */
-    private final static int BIT_COUNT_IN_INT = 32;
+	/**
+	 * 压缩列表结束的标识 255
+	 */
+	private final static byte ZIP_END = (byte) 0xFF;
 
-    /**
-     * int 的位数是 byte 的 4 倍
-     */
-    private final static int COUNT_FROM_INT_BIT_TO_BYTE = BIT_COUNT_IN_INT / BIT_COUNT_IN_BYTE;
+	/**
+	 * 8 位二进制最大值
+	 */
+	private final static int MAX_8_BIT_VALUE = 0xFF;
 
-    public ZipList() {
+	/**
+	 * 长度的分隔值
+	 */
+	private final static int ZIP_BIG_PREVLEN = 0xFE
 
-        // 头部 + zlend 1 个字节
-        int length = ZIPLIST_HEADER_SIZE + 1;
+	/**
+	 * int 的位数是 byte 的 4 倍
+	 */
+	private final static int COUNT_FROM_INT_BIT_TO_BYTE = Integer.SIZE / Byte.SIZE;
 
-        zipList = new byte[length];
+	public ZipList() {
 
-        updateZlBytes(4);
-        // TODO tail length
+		// 头部长度 + zlend 1 个字节
+		int length = ZIPLIST_HEADER_SIZE + 1;
+		byte[] list = new byte[length];
+		updateZlBytes(length);
+		updateZlTail(ZIPLIST_HEADER_SIZE);
+		updateZlLen((short) 0);
+		list[length - 1] = ZIP_END;
+		this.zipList = list;
+	}
 
-        zipList[length - 1] = ZIP_END;
-    }
+	public void insert() {
 
-    private void updateZlBytes(int length) {
+		int curLen = getZlBytes();
 
-        for (int i = COUNT_FROM_INT_BIT_TO_BYTE - 1; i >= 0; i--) {
-            // 右移位数
-            int rightMoveBitCount = COUNT_FROM_INT_BIT_TO_BYTE - 1 - i;
-            zipList[i] = (byte) ((length >> rightMoveBitCount) & MAX_8_BIT_VALUE);
-        }
-    }
+		// 已经有元素了
+		if (zipList[ZIPLIST_HEADER_SIZE] != ZIP_END) {
+
+		} else {
+
+		}
+
+	}
+
+	private int ZIP_DECODE_PREVLEN(byte[] a) {
+
+		int prevlensize = ZIP_DECODE_PREVLENSIZE(a);
+		int prevlen = 0;
+		if (prevlensize == 1) {
+			prevlen = a[0];
+		} else {
+			prevlen = ((int) a[1]) << 24) |((int) a[2]) << 16) |((int) a[3]) << 8) |a[4];
+		}
+		return prevlen;
+	}
+
+	private int ZIP_DECODE_PREVLENSIZE(byte[] a) {
+		return a[0] < (byte) ZIP_BIG_PREVLEN ? 1 : 5;
+	}
+
+	/**
+	 * 更新 压缩列表的 zlBytes 的值
+	 *
+	 * @param zlBytesLen
+	 */
+	private void updateZlBytes(int zlBytesLen) {
+
+		// zipList 的前 10 个字节 [][][][]  [][][][]  [][]
+		// 将 zlBytesLen 的 4 个字节 a b c d 放到 zipList 的前 4 个字节的位置 [a][b][c][d]  [][][][]  [][]
+		for (int i = 0; i < COUNT_FROM_INT_BIT_TO_BYTE - 1; i++) {
+			// 右移位数
+			int rightMoveBitCount = (COUNT_FROM_INT_BIT_TO_BYTE - 1 - i) * Byte.SIZE;
+			zipList[i] = (byte) ((zlBytesLen >> rightMoveBitCount) & MAX_8_BIT_VALUE);
+		}
+	}
+
+	/**
+	 * 更新 压缩列表的 zlTail 的值
+	 *
+	 * @param zlTailLen
+	 */
+	private void updateZlTail(int zlTailLen) {
+
+		// zipList 的前 10 个字节 [][][][]  [][][][]  [][]
+		// 将 zlTailLen 的 4 个字节 a b c d 放到 zipList 的前 5 到 8 位置 [][][][]  [a][b][c][d]  [][]
+
+		for (int i = 0; i < COUNT_FROM_INT_BIT_TO_BYTE - 1; i++) {
+			// 右移位数
+			int rightMoveBitCount = (COUNT_FROM_INT_BIT_TO_BYTE - 1 - i) * Byte.SIZE;
+			zipList[ZL_BYTES_LEN + i] = (byte) ((zlTailLen >> rightMoveBitCount) & MAX_8_BIT_VALUE);
+		}
+	}
+
+	/**
+	 * 更新 压缩列表的 zlLen 的值
+	 *
+	 * @param zlLen
+	 */
+	private void updateZlLen(short zlLen) {
+
+		// zipList 的前 10 个字节 [][][][]  [][][][]  [][]
+		// 将 zlLen 的 2 个字节 a b 放到 zipList 的前 9 到 10 位置 [][][][]  [][][][]  [a][b]
+
+		// [][][][]  [][][][]  [*][*] 将 contentLen 存到数组索引 8,9 位置
+		zipList[ZIPLIST_HEADER_SIZE - 1] = (byte) (zlLen & MAX_8_BIT_VALUE);
+		zipList[ZIPLIST_HEADER_SIZE - 2] = (byte) ((zlLen >> Byte.SIZE) & MAX_8_BIT_VALUE);
+	}
+
+	/**
+	 * 获取 zlBytes 的值
+	 *
+	 * @return
+	 */
+	private int getZlBytes() {
+
+		int zlBytes = 0;
+		for (int i = 0; i < COUNT_FROM_INT_BIT_TO_BYTE - 1; i++) {
+			// 左移的位数
+			int leftMoveBitCount = Byte.SIZE * i;
+			zlBytes = (zlBytes << leftMoveBitCount) | zipList[i];
+		}
+		return zlBytes;
+	}
+
+	/**
+	 * 获取 zlBytes 的值
+	 *
+	 * @return
+	 */
+	private int getZlTail() {
+
+		int zlTail = 0;
+		for (int i = 0; i < COUNT_FROM_INT_BIT_TO_BYTE - 1; i++) {
+			// 左移的位数
+			int leftMoveBitCount = Byte.SIZE * i;
+			zlTail = (zlTail << leftMoveBitCount) | zipList[ZL_BYTES_LEN + i];
+		}
+		return zlTail;
+	}
+
+	/**
+	 * 获取 zllen 的值
+	 *
+	 * @return
+	 */
+	private short getZlLen() {
+
+		short zlLen = 0;
+		zlLen = (short) (zlLen | zipList[ZIPLIST_HEADER_SIZE - 2]);
+		zlLen = (short) ((zlLen << Byte.SIZE) | zipList[ZIPLIST_HEADER_SIZE - 1]);
+		return zlLen;
+	}
 
 
-    @Data
-    private static class Entry {
+	@Data
+	private static class Entry {
 
-        /**
-         * previous_entry_length 占用了多少个字节 1 或者 5
-         */
-        int prevrawlensize;
+		/**
+		 * previous_entry_length 占用了多少个字节 1 或者 5
+		 */
+		int prevrawlensize;
 
-        /**
-         * previous_entry_length 的值
-         */
-        int prevrawlen;
+		/**
+		 * previous_entry_length 的值
+		 */
+		int prevrawlen;
 
-        /**
-         * encoding 占用了多少个字节  1,2,5
-         */
-        int lensize;
+		/**
+		 * encoding 占用了多少个字节  1,2,5
+		 */
+		int lensize;
 
-        /**
-         * 元素数据内容的长度
-         */
-        int len;
+		/**
+		 * 元素数据内容的长度
+		 */
+		int len;
 
-        /**
-         * 数据类型
-         */
-        char encoding;
+		/**
+		 * 数据类型
+		 */
+		char encoding;
 
-        int headerSize;
+		int headerSize;
 
-        char content;
+		char content;
 
-        private void zipDecodePrevlen() {
+		private void zipDecodePrevlen() {
 
-        }
+		}
 
-        private void zipDecodeLength() {
+		private void zipDecodeLength() {
 
-            // 192, 1100 0000
-            int a = 0xc0;
+			// 192, 1100 0000
+			int a = 0xc0;
 
 
-        }
-    }
+		}
+	}
 }
