@@ -7,7 +7,9 @@ public class App {
 
 	public static void main(String[] args) {
 
+		int a = (0xc0 | 2 << 4);
 
+		System.out.println(a + " " + Integer.toBinaryString(a ));
 	}
 
 	private static char[] createCharArr(char... args) {

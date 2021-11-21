@@ -261,7 +261,7 @@ public class ZipList extends AbstractZipList {
 			// -4, 说明在插入当前 entryX 时， entryX - 1, entryX + 2,  entryX+2 的 previous_entry_length = 5
 			// 那么 entryX 插入时 previous_entry_length 理所应当为 5, 那么 reqLen 必定是 > 5 的, 不会出现 < 4 的
 			// 但是在 连锁更新 时的还是可能出现特殊情况
-			// 连锁更新，假设现在有一个列表 A(p_e_l=5) B(p_e_l=5) C(p_e_l=5), 这时候如果插入一个只需要 1 自己的 entry
+			// 连锁更新，假设现在有一个列表 A(p_e_l=5) B(p_e_l=5) C(p_e_l=5), 这时候如果插入一个只需要 1 个字节的 entry
 			// I(p_e_l=5) A(p_e_l=1) A 需要的字节数变小了, 假设刚好变为只需要 1 个字节，那么后面的 B 的 previous_entry_length 也需要变小
 			// 导致 B 也变为只需要 1 个字节了, 导致 C 也需要变小, 从而引起了后面的连续更新
 
@@ -325,7 +325,7 @@ public class ZipList extends AbstractZipList {
 			// 需要结束后, 可能出现压缩列表申请了更多的空间, 也可能出现多了空间, 这时候会触发列表重新分配
 		}
 
-		// 更新当前的 entry 的 pre previous_entry_length
+		// 更新当前的 entry 的 previous_entry_length
 		setZlEntryPreviousEntryLength(zipList, insertPos, preLen, false);
 
 		int encodingNeedByteNum = 0;
@@ -336,7 +336,7 @@ public class ZipList extends AbstractZipList {
 			encodingNeedByteNum = setZlEntryEncodingByStr(zipList, insertPos + prevLenSize, content);
 		}
 
-		// 更新当前的 entry 的 contentzz
+		// 更新当前的 entry 的 content
 		int updatePos = insertPos + preEntryPos + encodingNeedByteNum;
 		// 更新当前 entry 的 content
 		setZlEntryContent(zipList, updatePos, content);
