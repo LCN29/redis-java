@@ -8,6 +8,6 @@ package com.can.encoding;
  * @author
  * @date 2021-11-08  17:19
  */
-public class objEncodingRaw {
+public class ObjEncodingRaw {
 
 }
