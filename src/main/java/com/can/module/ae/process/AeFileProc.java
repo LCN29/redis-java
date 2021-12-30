@@ -13,5 +13,13 @@ import com.can.module.ae.AeEventLoop;
 @FunctionalInterface
 public interface AeFileProc {
 
-	void aeFileProc(AeEventLoop eventLoop, int fd, int mask);
+	/**
+	 * 文件事件执行函数
+	 *
+	 * @param eventLoop  时间轮询
+	 * @param fd         文件描述符
+	 * @param clientData 客户数据
+	 * @param mask       文件标识
+	 */
+	void aeFileProc(AeEventLoop eventLoop, int fd, Object clientData, int mask);
 }

@@ -1,6 +1,8 @@
 package com.can.module.ae.event;
 
 import com.can.module.ae.process.AeEventFinalizerProc;
+import com.can.module.ae.process.AeTimeProc;
+import lombok.Data;
 
 /**
  * <pre>
@@ -10,21 +12,30 @@ import com.can.module.ae.process.AeEventFinalizerProc;
  * @author
  * @date 2021-12-29  18:06
  */
+@Data
 public class AeTimeEvent {
 
-	long id;
+	// 事件 id, 不断递增的
+	private long id;
 
-	long whenSec;
+	// 事件执行的时间 (秒数)
+	private long whenSec;
 
-	long whenMs;
+	// 事件执行的时间 (毫秒数)
+	private long whenMs;
 
-	AeTimeEvent aeTimeEvent;
+	// 执行的函数
+	private AeTimeProc timeProc;
 
-	AeEventFinalizerProc aeEventFinalizerProc;
+	// 时间事件从链表中删除时执行的函数, 非必须
+	private AeEventFinalizerProc finalizerProc;
 
-	Object clientData;
+	// 客户端数据
+	private Object clientData;
 
-	AeTimeEvent prev;
+	// 上一个时间事件
+	private AeTimeEvent prev;
 
-	AeTimeEvent next;
+	// 下一个时间事件
+	private AeTimeEvent next;
 }
