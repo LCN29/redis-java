@@ -18,10 +18,10 @@ public class AeTimeEvent {
 	// 事件 id, 不断递增的
 	private long id;
 
-	// 事件执行的时间 (秒数)
+	// 事件执行的时间, 当前时间的时间戳: 单位秒数
 	private long whenSec;
 
-	// 事件执行的时间 (毫秒数)
+	// 事件执行的时间, 多少秒后, 还要多少毫秒数
 	private long whenMs;
 
 	// 执行的函数

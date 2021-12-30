@@ -28,7 +28,7 @@ import java.util.Objects;
 public class Ae {
 
 	// ae 底层 api 实现
-	private static AeApi AE_API = AeApi.getAeApiInstance(DefaultConfig.AE_API_TYPE);
+	private final static AeApi AE_API = AeApi.getAeApiInstance(DefaultConfig.AE_API_TYPE);
 
 	/**
 	 * 创建 AeEventLoop
@@ -347,8 +347,9 @@ public class Ae {
 
 			if (Objects.nonNull(shortest)) {
 
+				// 当前的时间 多少秒又多少毫秒
 				long nowSec = aeGetTime(0);
-				long nowMs = aeGetTime(1);
+				long nowMs = aeGetTime(1) - nowSec * 1000;
 
 				// 获取当前时间触发还需要多少毫秒
 				long ms = (shortest.getWhenSec() - nowSec) * 1000 + shortest.getWhenMs() - nowMs;
@@ -446,7 +447,7 @@ public class Ae {
 	 * 获取当前的时间
 	 *
 	 * @param type 0: 以秒的方式表示, 1: 以毫秒的方式表示
-	 * @return
+	 * @return 当前的时间
 	 */
 	private static long aeGetTime(int type) {
 		return type == 0 ? TimeUtils.getCurrentTimeWithSec() : TimeUtils.getCurrentTimeWithMs();
@@ -514,7 +515,7 @@ public class Ae {
 			}
 
 			long nowSec = aeGetTime(0);
-			long nowMs = aeGetTime(1);
+			long nowMs = aeGetTime(1) - nowSec * 1000;
 
 			// 时间事件的执行时间在当前时间之前, 执行
 			if (nowSec > te.getWhenSec() || (nowSec == te.getWhenSec() && nowMs >= te.getWhenMs())) {
@@ -545,7 +546,7 @@ public class Ae {
 	private static void aeAddMillisecondsToNow(long milliseconds, AeTimeEvent aeTimeEvent) {
 
 		long curSec = aeGetTime(0);
-		long curMs = aeGetTime(1);
+		long curMs = aeGetTime(1) - curSec * 1000;
 
 		long whenSec = curSec + milliseconds / 1000;
 		long whenMs = curMs + milliseconds % 1000;
