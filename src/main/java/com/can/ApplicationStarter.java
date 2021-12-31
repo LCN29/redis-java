@@ -24,6 +24,8 @@ public class ApplicationStarter {
 
 		// https://zhuanlan.zhihu.com/p/140927022
 		// https://zhuanlan.zhihu.com/p/335721118
+		// https://blog.csdn.net/cmmchenmm/article/details/98512156
+		// https://github.com/menwenjun/redis_source_annotation/blob/master/server.h
 
 		// 初始化配置
 		//initServerConfig();
@@ -55,6 +57,14 @@ public class ApplicationStarter {
 			System.err.println("Failed creating event loop");
 			return;
 		}
+
+		// 创建 socket 监听
+
+		// 添加 定时事件到事件轮询中
+
+		// 添加 socket 文件事件到事件轮询中
+
+
 	}
 
 	public static RedisServer getRedisServer() {
